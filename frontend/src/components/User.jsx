@@ -8,17 +8,19 @@ export const Users = () => {
     const [filter , setFilter] = useState("")
     const [users, setUsers] = useState([]);
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get("http://localhost:3000/api/user/bulk?filter=" + filter);
-                setUsers(response.data.users);
-             
-            } catch (err) {
-                console.log("Error while filtering", err);
-            }
-        };
-    
-        fetchData();
+        const timeoutId = setTimeout(() => {
+            const fetchData = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:3001/api/user/bulk?filter=${filter}`);
+                    setUsers(response.data.users);
+                } catch (err) {
+                    console.log("Error while filtering", err);
+                }
+            };
+            fetchData();
+        }, 500); 
+
+        return () => clearTimeout(timeoutId);
     }, [filter]);
     
     return <>
