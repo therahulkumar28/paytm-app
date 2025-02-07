@@ -36,7 +36,7 @@ router.post('/signup', async (req, res)=>{
         lastName : req.body.lastName,
     })
     const userId = newUser._id ;
-
+   
        // random balance added 
     await Account.create({
         userId,

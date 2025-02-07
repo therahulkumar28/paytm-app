@@ -22,7 +22,7 @@ export const SendMoney = () => {
 
     try {
       await axios.post(
-        "http://localhost:3000/api/account/transfer",
+        "http://localhost:3001/api/account/transfer",
         {
           to: id,
           amount

@@ -17,7 +17,7 @@ export const Signup = () => {
 
   const handleSignUp = async () => {
     try {
-      const response = await axios.post("http://localhost:3000/api/user/signup", {
+      const response = await axios.post("http://localhost:3001/api/user/signup", {
         username,
         password,
         firstName,

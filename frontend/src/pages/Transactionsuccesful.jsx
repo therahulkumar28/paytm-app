@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation } from 'react-router-dom';
 import useGetBalance from '../hooks/GetBalance';
 import { Appbar } from '../components/Appbar';
