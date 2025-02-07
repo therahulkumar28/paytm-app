@@ -2,14 +2,15 @@ const express = require('express');
 const zod = require('zod')
 const router = express.Router();
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const {authMiddleware} = require ('../middleware/middleware')
 const {JWT_SECRET} = require('../config/jsontoken');
 const {Account , User} = require('../models/Usermodel')
 const signupBody = zod.object({
-     username:zod.string().email(),
-     firstName: zod.string(),
+     username:zod.string().email({ message: "Invalid email address" }),
+     firstName: zod.string().min(3, { message: "Must be 3 or more characters long" }),
      lastName : zod.string(),
-     password:zod.string()
+     password:zod.string().min(5, { message: "Must be 5 or more characters long" })
 })
 
 
@@ -19,25 +20,29 @@ router.post('/signup', async (req, res)=>{
         return res.status(411).json({
             message : "Email already taken / Incorrect inputs"
         })
-      
     }
     const existingUser = await User.findOne({
         username : req.body.username
     })
+   
     if(existingUser){
         return res.status(411).json({
-            message : "User already exist/ try other username "
+            message : "User/Email already exist/ try other username "
         })
     }
+    
+    const salt = await bcrypt.genSalt(parseInt(process.env.Salt));
+
+    const hashedPassword = await bcrypt.hash(req.body.password,salt);
+    console.log(hashedPassword)
     const newUser = await User.create({
         username : req.body.username ,
-        password : req.body.password,
+        password : hashedPassword,
         firstName : req.body.firstName ,
         lastName : req.body.lastName,
     })
     const userId = newUser._id ;
-   
-       // random balance added 
+
     await Account.create({
         userId,
         balance: 1+ Math.random()*10000
@@ -45,18 +50,16 @@ router.post('/signup', async (req, res)=>{
     const token = jwt.sign({
         userId 
     },JWT_SECRET)
+
     res.json({
         message : "User created successfully",
         token : token
     })
 
- 
-   
-
 });
 
 const signinBody = zod.object({
-    username : zod.string().email(),
+    username : zod.string().email({ message: "Invalid email address" }),
     password:zod.string()
 })
 router.post('/signin', async (req, res) => {
@@ -67,21 +70,29 @@ router.post('/signin', async (req, res) => {
             message: "Invalid Username or password",
         });
     }
-
     const user = await User.findOne({
         username: req.body.username,
-        password: req.body.password,
     });
-
-    if (!user) {
-        return res.status(411).json({
-            message: "User does not exist",
-        });
+    if(!user){
+        return res.status(404).json(
+            {
+                message:"User not found"
+            }
+        );
+    }
+   
+    const isMatch = await bcrypt.compare(req.body.password,user.password);
+    if(!isMatch){
+        return res.status(401).json({
+            message:"Username / Password is Incorrect"
+        })
     }
 
+    
+  //  console.log(user)
     const token = jwt.sign({
-        user_id: user._id,
-    }, JWT_SECRET);
+        userId : user._id
+    },JWT_SECRET)
 
     // Send the response once, with the token
     res.json({

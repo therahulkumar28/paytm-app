@@ -9,12 +9,11 @@ const authMiddleware = (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    
+    //console.log(token)
+
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        //console.log(decoded.userId)
         req.userId = decoded.userId;
-       // console.log(req.userId)
         next();
     } catch (err) {
         return res.status(403).json({ error: "Token verification failed" });
